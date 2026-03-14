@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SelectionAggregate": {
+      "commandName": "Project"
+    },
+    "Revit 2026": {
+      "commandName": "Executable",
+      "executablePath": "H:\\Revit2026\\Software\\Revit 2026\\Revit.exe",
+      "workingDirectory": "H:\\Revit2026\\Software\\Revit 2026"
+    }
+  }
+}

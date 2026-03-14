@@ -1,0 +1,43 @@
+﻿<Window x:Class="SelectionAggregate.SelectionAggregateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Selection Aggregate"
+        Height="450"
+        Width="360"
+        WindowStartupLocation="CenterScreen">
+  <Grid Margin="16">
+    <StackPanel>
+      <TextBlock Text="Selection Aggregate"
+                 FontSize="20"
+                 FontWeight="Bold"
+                 Margin="0,0,0,16"/>
+
+      <TextBlock x:Name="SelectionTextBlock"
+                 Text="0 items selected"
+                 Margin="0,0,0,12"/>
+
+      <TextBlock Text="Parameter"/>
+      <ComboBox x:Name="ParameterComboBox" Margin="0,4,0,12" Height="28"/>
+
+      <TextBlock Text="Calculation"/>
+      <ComboBox x:Name="CalculationComboBox" Margin="0,4,0,12" Height="28">
+        <ComboBoxItem Content="Sum"/>
+        <ComboBoxItem Content="Average"/>
+        <ComboBoxItem Content="Min"/>
+        <ComboBoxItem Content="Max"/>
+      </ComboBox>
+
+      <Button x:Name="CalculateButton"
+              Content="Calculate"
+              Height="32"
+              Width="100"
+              Margin="0,8,0,12" 
+              Click="CalculateButton_Click"/>
+
+      <Border BorderBrush="Gray" BorderThickness="1" Padding="12">
+      <TextBlock x:Name="ResultTextBlock" 
+                 Text="Result will appear here."/>
+      </Border>
+    </StackPanel>
+  </Grid>
+</Window>
