@@ -69,6 +69,7 @@ namespace SelectionAggregate.Services
             var firstParams = elements[0].Parameters
                 .Cast<Parameter>()
                 .Where(IsCalculable)
+                .Where(p => IsInTargetGroup(p, "Dimensions"))
                 .ToDictionary(
                     p => GetParameterKey(p),
                     p => p,
@@ -81,6 +82,7 @@ namespace SelectionAggregate.Services
                 var currentKeys = elements[i].Parameters
                     .Cast<Parameter>()
                     .Where(IsCalculable)
+                    .Where(p => IsInTargetGroup(p, "Dimensions"))
                     .Select(GetParameterKey)
                     .ToHashSet(System.StringComparer.OrdinalIgnoreCase);
 
@@ -110,6 +112,16 @@ namespace SelectionAggregate.Services
             if (p.Definition == null) return "";
 
             return p.Definition.Name ?? "";
+        }
+
+        private static bool IsInTargetGroup(Parameter parameter, string targetGroupLabel)
+        {
+            if (parameter?.Definition == null) return false;
+
+            ForgeTypeId groupTypeId = parameter.Definition.GetGroupTypeId();
+            string groupLabel = LabelUtils.GetLabelForGroup(groupTypeId);
+
+            return string.Equals(groupLabel, targetGroupLabel, System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }

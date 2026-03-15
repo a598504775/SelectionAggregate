@@ -3,6 +3,7 @@ using Autodesk.Revit.UI;
 using SelectionAggregate.Models;
 using SelectionAggregate.Services;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 
 namespace SelectionAggregate
@@ -35,6 +36,13 @@ namespace SelectionAggregate
 
             var parameters = _selectionService.GetCommonCalculableParameters(_selectedElements);
             ParameterComboBox.ItemsSource = parameters;
+
+            // Debug output for parameter groups
+            Element et = _selectedElements[0];
+            List<string> testList = GetParameterGroupDebugInfo(et);
+            DebugComboBox.ItemsSource = testList;
+
+
 
             if (parameters.Count > 0)
             {
@@ -81,6 +89,23 @@ namespace SelectionAggregate
             {
                 ResultTextBlock.Text = ex.Message;
             }
+        }
+
+        private static List<string> GetParameterGroupDebugInfo(Element element)
+        {
+            var lines = new List<string>();
+
+            foreach (Parameter p in element.Parameters)
+            {
+                if (p?.Definition == null) continue;
+
+                ForgeTypeId groupTypeId = p.Definition.GetGroupTypeId();
+                string groupLabel = LabelUtils.GetLabelForGroup(groupTypeId);
+
+                lines.Add($"{p.Definition.Name} | Group = {groupLabel}");
+            }
+
+            return lines.OrderBy(x => x).ToList();
         }
 
     }

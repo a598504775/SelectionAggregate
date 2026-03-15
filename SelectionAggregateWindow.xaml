@@ -18,7 +18,7 @@
 
       <TextBlock Text="Parameter"/>
       <ComboBox x:Name="ParameterComboBox" Margin="0,4,0,12" Height="28"/>
-
+      <ComboBox x:Name="DebugComboBox" Margin="0,4,0,12" Height="28"/>
       <TextBlock Text="Calculation"/>
       <ComboBox x:Name="CalculationComboBox" Margin="0,4,0,12" Height="28">
         <ComboBoxItem Content="Sum"/>
