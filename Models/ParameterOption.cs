@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Autodesk.Revit.DB;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace SelectionAggregate.Models
     {
         public string DisplayName { get; set; } = "";
         public string InternalName { get; set; } = "";
+        public ForgeTypeId specTypeId { get; set; }
 
         public override string ToString()
         {

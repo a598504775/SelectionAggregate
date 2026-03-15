@@ -11,6 +11,7 @@ namespace SelectionAggregate
     public partial class SelectionAggregateWindow : Window
     {
         private readonly UIDocument _uidoc;
+        private readonly Document _doc;
         private readonly SelectionAnalysisService _selectionService;
         private List<Element> _selectedElements = new List<Element>();
 
@@ -22,7 +23,8 @@ namespace SelectionAggregate
             InitializeComponent();
 
             _uidoc = uidoc;
-            _selectionService = new SelectionAnalysisService(uidoc);
+            _doc = uidoc.Document;
+            _selectionService = new SelectionAnalysisService(_uidoc, _doc);
 
             LoadSelectionData();
         }
@@ -78,12 +80,13 @@ namespace SelectionAggregate
 
             try
             {
-                double result = _calculationService.Calculate(
+                string result = _calculationService.Calculate(
                     _selectedElements,
+                    _doc.GetUnits(),
                     selectedParam.InternalName,
                     operation);
 
-                ResultTextBlock.Text = result.ToString("F2");
+                ResultTextBlock.Text = result;
             }
             catch (System.Exception ex)
             {

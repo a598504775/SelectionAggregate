@@ -7,13 +7,21 @@ namespace SelectionAggregate.Services
 {
     public class AggregateCalculationService
     {
-        public double Calculate(
+        public string Calculate(
             List<Element> elements,
+            Units units,
             string parameterName,
             string operation)
         {
             var values = new List<double>();
+            
+            Parameter firstParam = elements
+                .Select(e => FindParameterByName(e, parameterName))
+                .FirstOrDefault(p => p != null);
+            ForgeTypeId specTypeId = firstParam.Definition.GetDataType();
 
+            if (firstParam == null)
+                throw new InvalidOperationException("Parameter not found.");
             foreach (var element in elements)
             {
                 Parameter param = FindParameterByName(element, parameterName);
@@ -32,7 +40,7 @@ namespace SelectionAggregate.Services
             if (values.Count == 0)
                 throw new InvalidOperationException("No calculable values found.");
 
-            return operation switch
+            double result = operation switch
             {
                 "Sum" => values.Sum(),
                 "Average" => values.Average(),
@@ -40,6 +48,10 @@ namespace SelectionAggregate.Services
                 "Max" => values.Max(),
                 _ => throw new NotSupportedException($"Unsupported operation: {operation}")
             };
+
+            string formattedResult = UnitFormatUtils.Format(units, specTypeId, result, false);
+
+            return formattedResult;
         }
 
         private Parameter FindParameterByName(Element element, string parameterName)

@@ -11,10 +11,10 @@ namespace SelectionAggregate.Services
         private readonly UIDocument _uidoc;
         private readonly Document _doc;
 
-        public SelectionAnalysisService(UIDocument uidoc)
+        public SelectionAnalysisService(UIDocument uidoc, Document doc)
         {
             _uidoc = uidoc;
-            _doc = uidoc.Document;
+            _doc = doc;
         }
 
         public List<Element> GetSelectedElements()
@@ -93,11 +93,13 @@ namespace SelectionAggregate.Services
                 .Select(k => new ParameterOption
                 {
                     InternalName = k,
-                    DisplayName = k
+                    DisplayName = k,
+                    specTypeId = firstParams[k].Definition.GetDataType()
                 })
                 .OrderBy(x => x.DisplayName)
                 .ToList();
         }
+
 
         private bool IsCalculable(Parameter p)
         {
