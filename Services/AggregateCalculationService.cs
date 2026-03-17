@@ -18,10 +18,12 @@ namespace SelectionAggregate.Services
             Parameter firstParam = elements
                 .Select(e => FindParameterByName(e, parameterName))
                 .FirstOrDefault(p => p != null);
-            ForgeTypeId specTypeId = firstParam.Definition.GetDataType();
-
+            
             if (firstParam == null)
                 throw new InvalidOperationException("Parameter not found.");
+
+            ForgeTypeId specTypeId = firstParam.Definition.GetDataType();
+
             foreach (var element in elements)
             {
                 Parameter param = FindParameterByName(element, parameterName);

@@ -15,14 +15,16 @@ Basically, the Revit built-in filter is good enough to be used in this plugin, i
 Behind the scene, the result will save the element ids of the selection group. If some elements are deleted in the model, an red "!" icon will appear in front of the result name. You can hover over the icon to see the error message, such as "2 items are missing". Once you click "Update" button in that message window, the result will be updated.
 
 ###UI
+####Main UI
+Description: Open the plugin, and you will see the main UI as below.
 
 -----------------------------------------
 Selection Aggregate
 -----------------------------------------
 Selection: 5 items selected      [Filter]
 -----------------------------------------
-Parameter [Area ▼]
-Calculation [Sum ▼]
+Parameter     [Area ▼]
+Calculation   [Sum ▼]
 -----------------------------------------
 Result: 1250                [Save Result]
 -----------------------------------------
@@ -38,6 +40,29 @@ History
   --------------------------------------
 -----------------------------------------
 
+####Filter UI
+Description: Click "Filter" button, the Filter UI will show up. The "Value" is formatted according to the parameter type.
+
+--------------------------------------
+Filter
+--------------------------------------
+Parameter   Rule                Value
+[Area ▼]    [is less than ▼]    [30  ]
+--------------------------------------
+                      [Apply] [Cancel]
+--------------------------------------
+
+
 ###Notes:
 Put SelectionAggregate.addin into C:\ProgramData\Autodesk\Revit\Addins\2026\
 Revit 2026 API changes: https://www.revitapidocs.com/2026/news
+
+
+###TODO:
+- Implement the history panel to save the results. Clicking on the history will select the corresponding elements in the model. The history can be exported as .csv or excel files.
+- Advanced filter function: Can support more type of parameters and not limited by Dimensions. 
+- Advanced filter function: Introducing Family and Type parameters and string type filter operation. But not need to implement Catagory level filter since Revit has that built.
+- Advanced filter function: Introducting a special Value input box that not only can input but also with drop down menu, reading all existing values of this parameter.
+- Implement dynamic selection. When the user clicks on the model and changes the selection, the UI will refresh automatically. The plugin will not block the Revit UI, so the user can interact with the model while using the plugin.
+- Revise UI layout to be closer to the UI drafted above. And the UI can be snap to the side of the Revit window.
+- Advanced filter function: Revising filter's Value input to show units if applicable.

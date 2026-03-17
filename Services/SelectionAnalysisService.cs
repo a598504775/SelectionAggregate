@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using SelectionAggregate.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,6 +11,8 @@ namespace SelectionAggregate.Services
     {
         private readonly UIDocument _uidoc;
         private readonly Document _doc;
+
+        public object ForgedTypedId { get; private set; }
 
         public SelectionAnalysisService(UIDocument uidoc, Document doc)
         {
@@ -100,7 +103,83 @@ namespace SelectionAggregate.Services
                 .ToList();
         }
 
+        public List<Element> ApplyFilter(List<Element> elements, Models.FilterRule rule)
+        {
+            if (elements == null)
+                return new List<Element>();
 
+            if (rule == null)
+                throw new ArgumentNullException(nameof(rule));
+
+            elements = elements.Where(e => PassesFilter(e, rule)).ToList();
+            return elements;
+
+        }
+
+        private bool PassesFilter(Element element, Models.FilterRule rule)
+        {
+            Parameter param = null;
+            param = FindParameterByName(element, rule.ParameterOption.DisplayName);
+            if (param == null)
+            {
+                return false;
+            }
+
+            bool conditionMet = rule.Condition switch
+            {
+                FilterCondition.GreaterThan => GetNumericParameterValue(param) > ConvertFilterValueToInternalUnits(rule),
+                FilterCondition.GreaterThanOrEqual => GetNumericParameterValue(param) >= ConvertFilterValueToInternalUnits(rule),
+                FilterCondition.LessThan => GetNumericParameterValue(param) < ConvertFilterValueToInternalUnits(rule),
+                FilterCondition.LessThanOrEqual => GetNumericParameterValue(param) <= ConvertFilterValueToInternalUnits(rule),
+                FilterCondition.Equals => Math.Abs(GetNumericParameterValue(param) - ConvertFilterValueToInternalUnits(rule)) < 1e-6,
+                FilterCondition.NotEquals => Math.Abs(GetNumericParameterValue(param) - ConvertFilterValueToInternalUnits(rule)) >= 1e-6,
+                FilterCondition.HasValue => param.HasValue,
+                FilterCondition.HasNoValue => !param.HasValue,
+                _ => throw new InvalidOperationException("Unsupported filter condition")
+            };
+
+
+            return conditionMet;
+        }
+
+        private Parameter FindParameterByName(Element element, string parameterName)
+        {
+            foreach(Parameter p in element.Parameters)
+            {
+                if(p.Definition?.Name == parameterName)
+                {
+                    return p;
+                }
+            }
+            return null;
+        }
+
+        private double ConvertFilterValueToInternalUnits(Models.FilterRule rule)
+        {
+            if (rule == null)
+            {
+                throw new ArgumentNullException(nameof(rule));
+            }
+            if (rule.ParameterOption == null)
+            {
+                throw new InvalidOperationException("FilterRule is missing parameter options.");
+            }
+            if (!rule.Value.HasValue)
+            {
+                throw new InvalidOperationException("Filter rule is missing value");
+            }
+
+            ForgeTypeId specTypeId = rule.ParameterOption.specTypeId;
+            double inputValue = rule.Value.Value;
+
+            if (specTypeId == SpecTypeId.Number || specTypeId == SpecTypeId.Int.Integer)
+                return inputValue;
+            FormatOptions formatOptions = _doc.GetUnits().GetFormatOptions(specTypeId);
+            ForgeTypeId unitTypeId = formatOptions.GetUnitTypeId();
+
+            return UnitUtils.ConvertToInternalUnits(inputValue, unitTypeId);
+
+        }
         private bool IsCalculable(Parameter p)
         {
             if (p == null) return false;
@@ -108,6 +187,8 @@ namespace SelectionAggregate.Services
             return p.StorageType == StorageType.Double ||
                    p.StorageType == StorageType.Integer;
         }
+
+
 
         private string GetParameterKey(Parameter p)
         {
@@ -124,6 +205,19 @@ namespace SelectionAggregate.Services
             string groupLabel = LabelUtils.GetLabelForGroup(groupTypeId);
 
             return string.Equals(groupLabel, targetGroupLabel, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private double GetNumericParameterValue(Parameter param)
+        {
+            if (param.StorageType == StorageType.Double)
+            {
+                return param.AsDouble();
+            }
+            else if (param.StorageType == StorageType.Integer)
+            {
+                return param.AsInteger();
+            }
+            throw new InvalidOperationException("Parameter is not numeric");
         }
     }
 }

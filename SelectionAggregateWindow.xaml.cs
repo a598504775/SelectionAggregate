@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using SelectionAggregate.Models;
 using SelectionAggregate.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -29,23 +30,24 @@ namespace SelectionAggregate
             LoadSelectionData();
         }
 
+        // Break this method into two: ReloadSelectedElements() and RefreshMainUi()
         private void LoadSelectionData()
         {
-            _selectedElements = _selectionService.GetSelectedElements();
+            ReloadSelectedElements();
+            RefreshMainUi();
+        }
 
+        private void ReloadSelectedElements()
+        {
+            _selectedElements = _selectionService.GetSelectedElements();
+        }
+
+        private void RefreshMainUi()
+        {
             var summary = _selectionService.GetSelectionSummary(_selectedElements);
             SelectionTextBlock.Text = summary.Description;
-
             var parameters = _selectionService.GetCommonCalculableParameters(_selectedElements);
             ParameterComboBox.ItemsSource = parameters;
-
-            // Debug output for parameter groups
-            Element et = _selectedElements[0];
-            List<string> testList = GetParameterGroupDebugInfo(et);
-            DebugComboBox.ItemsSource = testList;
-
-
-
             if (parameters.Count > 0)
             {
                 ParameterComboBox.SelectedIndex = 0;
@@ -62,9 +64,17 @@ namespace SelectionAggregate
             }
         }
 
+
+
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ParameterComboBox.SelectedItem is not ParameterOption selectedParam)
+            if (_selectedElements == null || _selectedElements.Count == 0)
+            {
+                ResultTextBlock.Text = "No elements selected.";
+                return;
+            }
+
+            if (ParameterComboBox.SelectedItem is not ParameterOption selectedParam) 
             {
                 ResultTextBlock.Text = "Please select a parameter.";
                 return;
@@ -94,21 +104,49 @@ namespace SelectionAggregate
             }
         }
 
-        private static List<string> GetParameterGroupDebugInfo(Element element)
+        private void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            var lines = new List<string>();
+            var parameters = _selectionService.GetCommonCalculableParameters(_selectedElements);
 
-            foreach (Parameter p in element.Parameters)
+            if (parameters.Count == 0)
             {
-                if (p?.Definition == null) continue;
-
-                ForgeTypeId groupTypeId = p.Definition.GetGroupTypeId();
-                string groupLabel = LabelUtils.GetLabelForGroup(groupTypeId);
-
-                lines.Add($"{p.Definition.Name} | Group = {groupLabel}");
+                ResultTextBlock.Text = "No filterable parameters found.";
+                return;
             }
 
-            return lines.OrderBy(x => x).ToList();
+            var filterWindow = new FilterWindow(parameters);
+
+            bool? dialogResult = filterWindow.ShowDialog();
+
+            if (dialogResult != true || filterWindow.ResultRule == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Filter cancelled or no rule defined.");
+                return;
+            }
+                
+
+            try
+            {
+                var filteredElements = _selectionService.ApplyFilter(_selectedElements, filterWindow.ResultRule);
+
+                if (filteredElements.Count == 0)
+                {
+                    _uidoc.Selection.SetElementIds(new List<ElementId>());
+                    LoadSelectionData();
+                    ResultTextBlock.Text = "Filter applied. No elements matched.";
+                    return;
+                }
+
+                _uidoc.Selection.SetElementIds(filteredElements.Select(x => x.Id).ToList());
+
+                System.Diagnostics.Debug.WriteLine($"Filtered selection to {filteredElements.Count} elements.");
+
+                LoadSelectionData();
+            }
+            catch (System.Exception ex)
+            {
+                ResultTextBlock.Text = ex.Message;
+            }
         }
 
     }

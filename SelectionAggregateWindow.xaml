@@ -11,14 +11,17 @@
                  FontSize="20"
                  FontWeight="Bold"
                  Margin="0,0,0,16"/>
-
       <TextBlock x:Name="SelectionTextBlock"
                  Text="0 items selected"
                  Margin="0,0,0,12"/>
-
+      <Button x:Name="FilterButton"
+              Content="Filter"
+              Height="32"
+              Width="100"
+              Margin="0,8,0,12" 
+              Click="FilterButton_Click"/>
       <TextBlock Text="Parameter"/>
       <ComboBox x:Name="ParameterComboBox" Margin="0,4,0,12" Height="28"/>
-      <ComboBox x:Name="DebugComboBox" Margin="0,4,0,12" Height="28"/>
       <TextBlock Text="Calculation"/>
       <ComboBox x:Name="CalculationComboBox" Margin="0,4,0,12" Height="28">
         <ComboBoxItem Content="Sum"/>
