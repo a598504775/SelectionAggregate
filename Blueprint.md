@@ -21,14 +21,13 @@ Description: Open the plugin, and you will see the main UI as below.
 -----------------------------------------
 Selection Aggregate
 -----------------------------------------
-Selection: 5 items selected      [Filter]
+5 items selected                 [Filter]
+Parameter             [Area            ▼]
+Calculation           [Sum             ▼]
 -----------------------------------------
-Parameter     [Area ▼]
-Calculation   [Sum ▼]
+Result: 1250                  [Calculate]
 -----------------------------------------
-Result: 1250                [Save Result]
------------------------------------------
-History
+History                     [Save Result]
 -----------------------------------------
   Name        Value      Status
 ▶ Test1       1250 		   ✓
@@ -66,3 +65,6 @@ Revit 2026 API changes: https://www.revitapidocs.com/2026/news
 - Implement dynamic selection. When the user clicks on the model and changes the selection, the UI will refresh automatically. The plugin will not block the Revit UI, so the user can interact with the model while using the plugin.
 - Revise UI layout to be closer to the UI drafted above. And the UI can be snap to the side of the Revit window.
 - Advanced filter function: Revising filter's Value input to show units if applicable.
+- Advanced filter function: Undo and trace back previous selection
+- Overall UI improvement: Save selection for the previous selection, if applicable.
+- Provide formal Icon on Revit Add-Ins panel.

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace SelectionAggregate
 {
@@ -38,13 +39,13 @@ namespace SelectionAggregate
         {
             if (FilterParameterComboBox.SelectedItem is not ParameterOption parameter)
             {
-                MessageBox.Show("Please select a parameter.");
+                MessageBox.Show("Select a parameter.");
                 return;
             }
 
             if (FilterConditionComboBox.SelectedItem is not FilterCondition condition)
             {
-                MessageBox.Show("Please select a rule.");
+                MessageBox.Show("Select a rule.");
                 return;
             }
 
@@ -55,7 +56,7 @@ namespace SelectionAggregate
             {
                 if (!double.TryParse(FilterValueTextBox.Text, out double parsed))
                 {
-                    MessageBox.Show("Please enter a valid number.");
+                    MessageBox.Show("Enter a valid number.");
                     return;
                 }
 
@@ -92,7 +93,21 @@ namespace SelectionAggregate
                 FilterValueTextBox.IsEnabled = needsValue;
 
                 if (!needsValue)
+                {
                     FilterValueTextBox.Text = "";
+                    FilterValueTextBox.Background = FilterValueTextBox.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+                }
+                else
+                {
+                    FilterValueTextBox.Background = System.Windows.Media.Brushes.White;
+                }
+                if (needsValue)
+                {
+                    FilterValueTextBox.Background = Brushes.White;
+
+                    FilterValueTextBox.Focus();
+                    FilterValueTextBox.SelectAll();
+                }
             }
         }
     }

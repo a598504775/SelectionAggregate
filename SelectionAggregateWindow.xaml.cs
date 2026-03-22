@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SelectionAggregate
 {
@@ -52,15 +54,30 @@ namespace SelectionAggregate
             {
                 ParameterComboBox.SelectedIndex = 0;
                 CalculationComboBox.SelectedIndex = 0;
+                FilterButton.IsEnabled = true;
+                ParameterComboBox.IsEnabled = true;
                 CalculationComboBox.IsEnabled = true;
                 CalculateButton.IsEnabled = true;
-                ResultTextBlock.Text = "Ready";
+                SaveResultButton.IsEnabled = false;
+                ResultTextBlock.Text = "Ready to calculate.";
             }
             else
             {
                 CalculationComboBox.IsEnabled = false;
+                FilterButton.IsEnabled = false;
+                ParameterComboBox.IsEnabled = false;
+                CalculationComboBox.IsEnabled = false;
                 CalculateButton.IsEnabled = false;
-                ResultTextBlock.Text = "Incalculable";
+                SaveResultButton.IsEnabled = false;
+                if (_selectedElements.Count == 0)
+                {
+                    ResultTextBlock.Text = "Select elements to begin.";
+                }
+                else
+                {
+                    ResultTextBlock.Text = "No common calculable parameters were found.";
+                }
+                    
             }
         }
 
@@ -97,6 +114,7 @@ namespace SelectionAggregate
                     operation);
 
                 ResultTextBlock.Text = result;
+                SaveResultButton.IsEnabled = true;
             }
             catch (System.Exception ex)
             {
@@ -120,7 +138,6 @@ namespace SelectionAggregate
 
             if (dialogResult != true || filterWindow.ResultRule == null)
             {
-                System.Diagnostics.Debug.WriteLine("Filter cancelled or no rule defined.");
                 return;
             }
                 
@@ -133,21 +150,28 @@ namespace SelectionAggregate
                 {
                     _uidoc.Selection.SetElementIds(new List<ElementId>());
                     LoadSelectionData();
-                    ResultTextBlock.Text = "Filter applied. No elements matched.";
+                    ResultTextBlock.Text = "No elements matched.";
                     return;
                 }
 
                 _uidoc.Selection.SetElementIds(filteredElements.Select(x => x.Id).ToList());
-
-                System.Diagnostics.Debug.WriteLine($"Filtered selection to {filteredElements.Count} elements.");
-
                 LoadSelectionData();
+                ResultTextBlock.Text = "Filter applied.";
             }
             catch (System.Exception ex)
             {
                 ResultTextBlock.Text = ex.Message;
             }
         }
+        private void InvalidateCalculatedResult()
+        {
+            SaveResultButton.IsEnabled = false;
+        }
+        private void SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            InvalidateCalculatedResult();
+        }
+
 
     }
 }
