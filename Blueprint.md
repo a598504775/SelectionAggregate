@@ -67,4 +67,12 @@ Revit 2026 API changes: https://www.revitapidocs.com/2026/news
 - Advanced filter function: Revising filter's Value input to show units if applicable.
 - Advanced filter function: Undo and trace back previous selection
 - Overall UI improvement: Save selection for the previous selection, if applicable.
+- PushCurrentSelectionToUndo() only called when the selection number is changed.
+- History panel: Saved results persistant. Simple jSON version.
+
+###Before publish：
+- Refine filter window UI.
 - Provide formal Icon on Revit Add-Ins panel.
+- Filter UI will appear on to of the main UI
+- Using own input WPF box instead of buildin input box.
+- Check if 122 items selected will cause performance issue. And if it will spill the UI.

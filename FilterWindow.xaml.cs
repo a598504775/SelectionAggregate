@@ -95,7 +95,7 @@ namespace SelectionAggregate
                 if (!needsValue)
                 {
                     FilterValueTextBox.Text = "";
-                    FilterValueTextBox.Background = FilterValueTextBox.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+                    FilterValueTextBox.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
                 }
                 else
                 {

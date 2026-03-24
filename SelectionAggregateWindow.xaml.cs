@@ -1,11 +1,14 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Microsoft.VisualBasic;
 using SelectionAggregate.Models;
 using SelectionAggregate.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -20,7 +23,10 @@ namespace SelectionAggregate
 
         private readonly AggregateCalculationService _calculationService = new AggregateCalculationService();
 
+        private readonly SelectionUndoManager _undoManager = new SelectionUndoManager();
+        private readonly ObservableCollection<SavedResult> _savedResults = new ObservableCollection<SavedResult>();
 
+        private SavedResult _selectedSavedResult;
         public SelectionAggregateWindow(UIDocument uidoc)
         {
             InitializeComponent();
@@ -30,9 +36,12 @@ namespace SelectionAggregate
             _selectionService = new SelectionAnalysisService(_uidoc, _doc);
 
             LoadSelectionData();
+
+            // Review this
+            SavedResultsListBox.ItemsSource = _savedResults;
+            UpdateUndoButtonState();
         }
 
-        // Break this method into two: ReloadSelectedElements() and RefreshMainUi()
         private void LoadSelectionData()
         {
             ReloadSelectedElements();
@@ -53,20 +62,20 @@ namespace SelectionAggregate
             if (parameters.Count > 0)
             {
                 ParameterComboBox.SelectedIndex = 0;
-                CalculationComboBox.SelectedIndex = 0;
+                OperationComboBox.SelectedIndex = 0;
                 FilterButton.IsEnabled = true;
                 ParameterComboBox.IsEnabled = true;
-                CalculationComboBox.IsEnabled = true;
+                OperationComboBox.IsEnabled = true;
                 CalculateButton.IsEnabled = true;
                 SaveResultButton.IsEnabled = false;
                 ResultTextBlock.Text = "Ready to calculate.";
             }
             else
             {
-                CalculationComboBox.IsEnabled = false;
+                OperationComboBox.IsEnabled = false;
                 FilterButton.IsEnabled = false;
                 ParameterComboBox.IsEnabled = false;
-                CalculationComboBox.IsEnabled = false;
+                OperationComboBox.IsEnabled = false;
                 CalculateButton.IsEnabled = false;
                 SaveResultButton.IsEnabled = false;
                 if (_selectedElements.Count == 0)
@@ -97,7 +106,7 @@ namespace SelectionAggregate
                 return;
             }
 
-            if (CalculationComboBox.SelectedItem is not System.Windows.Controls.ComboBoxItem selectedCalcItem)
+            if (OperationComboBox.SelectedItem is not System.Windows.Controls.ComboBoxItem selectedCalcItem)
             {
                 ResultTextBlock.Text = "Please select a calculation method.";
                 return;
@@ -144,6 +153,7 @@ namespace SelectionAggregate
 
             try
             {
+                PushCurrentSelectionToUndo();
                 var filteredElements = _selectionService.ApplyFilter(_selectedElements, filterWindow.ResultRule);
 
                 if (filteredElements.Count == 0)
@@ -173,5 +183,225 @@ namespace SelectionAggregate
         }
 
 
+        private string GenerateNextSavedResultTitle()
+        {
+            int index = 1;
+
+            while (true)
+            {
+                string candidate = $"Result{index}";
+                bool exists = _savedResults.Any(x =>
+                    string.Equals(x.Title, candidate, System.StringComparison.OrdinalIgnoreCase));
+
+                if (!exists)
+                    return candidate;
+
+                index++;
+            }
+        }
+
+        private void SaveResultButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedElements == null || !_selectedElements.Any())
+                return;
+
+            var savedResult = new SavedResult
+            {
+                Title = GenerateNextSavedResultTitle(),
+                ElementIds = _selectedElements.Select(x => x.Id.Value).ToList(),
+                AggregateParameter = (ParameterComboBox.SelectedItem as ParameterOption)?.DisplayName ?? string.Empty,
+                AggregateOperation = (OperationComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty,
+                AggregateValueText = ResultTextBlock.Text ?? string.Empty,
+            };
+
+            _savedResults.Insert(0, savedResult);
+        }
+
+        private void SavedResultsListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            _selectedSavedResult = SavedResultsListBox.SelectedItem as SavedResult;
+        }
+
+
+        private void RenameSavedResultMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+            var savedResult = _selectedSavedResult;
+
+            if (savedResult == null) return;
+
+
+
+
+            string newTitle = Interaction.InputBox(
+                "Enter a new title",
+                "Rename Saved Result",
+                savedResult.Title);
+
+            if (string.IsNullOrWhiteSpace(newTitle))
+                return;
+
+            newTitle = newTitle.Trim();
+
+            if (_savedResults.Any(x => x != savedResult &&
+                string.Equals(x.Title, newTitle, System.StringComparison.OrdinalIgnoreCase)))
+            {
+                System.Windows.MessageBox.Show(
+                    "The title already exists.",
+                    "Rename Saved Result",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+                return;
+            }
+
+            savedResult.Title = newTitle;
+            RefreshSavedResultsList();
+        }
+
+
+        private void RefreshSavedResultsList()
+        {
+            var items = _savedResults.ToList();
+            _savedResults.Clear();
+
+            foreach (var item in items)
+            {
+                _savedResults.Add(item);
+            }
+        }
+
+        private void SelectSavedResultElementsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var savedResult = _selectedSavedResult;
+            if (savedResult == null) return;
+
+            var allIds = savedResult.ElementIds
+                .Select(x => new ElementId(x))
+                .ToList();
+
+            var validIds = allIds
+                .Where(id => _doc.GetElement(id) != null)
+                .ToList();
+
+            if (validIds.Count != allIds.Count)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Cannot select all elements.\n\nThis record has {allIds.Count} elements, but only {validIds.Count} exist in the project.\n\nRight-click and choose \"Update Element Selection\" to sync the record.",
+                    "Saved Result",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            PushCurrentSelectionToUndo();
+
+            _uidoc.Selection.SetElementIds(validIds);
+            LoadSelectionData();
+        }
+
+
+        private void UpdateSavedResultElementsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var savedResult = _selectedSavedResult;
+            if (savedResult == null) return;
+
+            var allIds = savedResult.ElementIds
+                .Select(x => new ElementId(x))
+                .ToList();
+
+            var validIds = allIds
+                .Where(id => _doc.GetElement(id) != null)
+                .Select(id => id.Value)
+                .ToList();
+
+            int removedCount = allIds.Count - validIds.Count;
+
+            if (removedCount == 0)
+            {
+                System.Windows.MessageBox.Show(
+                    "No update is needed.",
+                    "Update Element Selection",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+                return;
+            }
+
+            savedResult.ElementIds = validIds;
+            savedResult.AggregateValueText = string.Empty; // Invalidate cached result text
+
+            RefreshSavedResultsList();
+
+            System.Windows.MessageBox.Show(
+                $"Updated successfully.\n\nRemoved {removedCount} missing element(s).\n{validIds.Count} element(s) remain in this record.",
+                "Update Element Selection",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
+        }
+
+        private void DeleteSavedResultMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var savedResult = _selectedSavedResult;
+            if (savedResult == null) return;
+
+            _savedResults.Remove(savedResult);
+        }
+
+        private void PushCurrentSelectionToUndo()
+        {
+            var currentIds = _uidoc.Selection.GetElementIds()
+                .Select(x => x.Value)
+                .ToList();
+
+            if (currentIds.Any())
+            {
+                _undoManager.Push(currentIds);
+                UpdateUndoButtonState();
+            }
+        }
+
+        private void UndoButton_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO: Greyout Undo button if the stack is empty
+            var snapshot = _undoManager.Pop();
+            if (snapshot == null)
+                return;
+
+            var validIds = snapshot.ElementIds
+                .Select(x => new ElementId(x))
+                .Where(id => _doc.GetElement(id) != null)
+                .ToList();
+
+            if (!validIds.Any())
+            {
+                System.Windows.MessageBox.Show(
+                    "The previous selection is no longer available in the project.",
+                    "Undo Selection",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+                UpdateUndoButtonState();
+                return;
+            }
+
+            _uidoc.Selection.SetElementIds(validIds);
+            LoadSelectionData();
+            UpdateUndoButtonState();
+        }
+
+        private void UpdateUndoButtonState()
+        {
+            if (UndoButton != null)
+                UndoButton.IsEnabled = _undoManager.CanUndo;
+        }
+
+        private void SavedResultBorder_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is ListBoxItem item)
+            {
+                
+                item.IsSelected = true;
+                item.Focus();
+                _selectedSavedResult = item.DataContext as SavedResult;
+            }
+        }
     }
 }

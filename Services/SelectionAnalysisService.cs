@@ -12,8 +12,6 @@ namespace SelectionAggregate.Services
         private readonly UIDocument _uidoc;
         private readonly Document _doc;
 
-        public object ForgedTypedId { get; private set; }
-
         public SelectionAnalysisService(UIDocument uidoc, Document doc)
         {
             _uidoc = uidoc;
