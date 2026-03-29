@@ -1,0 +1,22 @@
+﻿SelectionAggregate – Installation Guide (Revit 2026)
+
+1. Close Revit if it is currently running.
+
+2. Copy the following two files into the Revit Addins folder:
+
+   SelectionAggregate.dll
+   SelectionAggregate.addin
+
+   Target folder:
+   C:\ProgramData\Autodesk\Revit\Addins\2026
+
+3. Launch Revit 2026.
+
+4. Go to the "Add-Ins" tab.
+
+5. Find the "SelectionAggregate" panel and click the button to start the tool.
+
+
+Notes:
+- Administrator permission may be required to copy files into ProgramData.
+- If the panel does not appear, make sure the .addin file path correctly points to the .dll file.

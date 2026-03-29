@@ -6,9 +6,13 @@ using SelectionAggregate.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.IO;
+using System.Text.Json;
 using System.Windows.Controls.Primitives;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -35,10 +39,10 @@ namespace SelectionAggregate
             _doc = uidoc.Document;
             _selectionService = new SelectionAnalysisService(_uidoc, _doc);
 
-            LoadSelectionData();
-
-            // Review this
             SavedResultsListBox.ItemsSource = _savedResults;
+
+            LoadFromLocal();
+            LoadSelectionData();
             UpdateUndoButtonState();
         }
 
@@ -142,6 +146,8 @@ namespace SelectionAggregate
             }
 
             var filterWindow = new FilterWindow(parameters);
+            filterWindow.Owner = this;
+            filterWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
             bool? dialogResult = filterWindow.ShowDialog();
 
@@ -208,6 +214,7 @@ namespace SelectionAggregate
             var savedResult = new SavedResult
             {
                 Title = GenerateNextSavedResultTitle(),
+                SelectionSummaryText = _selectionService.GetSelectionSummary(_selectedElements).Description,
                 ElementIds = _selectedElements.Select(x => x.Id.Value).ToList(),
                 AggregateParameter = (ParameterComboBox.SelectedItem as ParameterOption)?.DisplayName ?? string.Empty,
                 AggregateOperation = (OperationComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty,
@@ -215,6 +222,7 @@ namespace SelectionAggregate
             };
 
             _savedResults.Insert(0, savedResult);
+            SaveToLocal();
         }
 
         private void SavedResultsListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -256,6 +264,7 @@ namespace SelectionAggregate
 
             savedResult.Title = newTitle;
             RefreshSavedResultsList();
+            SaveToLocal();
         }
 
 
@@ -290,6 +299,8 @@ namespace SelectionAggregate
                     "Saved Result",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
+                savedResult.AggregateValueText = "(outdated)";
+                RefreshSavedResultsList();
                 return;
             }
 
@@ -326,8 +337,10 @@ namespace SelectionAggregate
                 return;
             }
 
+            var elements = GetElementsFromSavedResult(savedResult);
             savedResult.ElementIds = validIds;
-            savedResult.AggregateValueText = string.Empty; // Invalidate cached result text
+            savedResult.SelectionSummaryText = _selectionService.GetSelectionSummary(elements).Description;
+            savedResult.AggregateValueText = RecalculateSavedResult(_selectedSavedResult); 
 
             RefreshSavedResultsList();
 
@@ -336,6 +349,7 @@ namespace SelectionAggregate
                 "Update Element Selection",
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Information);
+            SaveToLocal();
         }
 
         private void DeleteSavedResultMenuItem_Click(object sender, RoutedEventArgs e)
@@ -344,6 +358,7 @@ namespace SelectionAggregate
             if (savedResult == null) return;
 
             _savedResults.Remove(savedResult);
+            SaveToLocal();
         }
 
         private void PushCurrentSelectionToUndo()
@@ -402,6 +417,92 @@ namespace SelectionAggregate
                 item.Focus();
                 _selectedSavedResult = item.DataContext as SavedResult;
             }
+        }
+
+        private void SaveToLocal()
+        {
+            try
+            {
+                var folder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "SelectionAggregate");
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                var file = Path.Combine(folder, "saved_results.json");
+
+                var json = JsonSerializer.Serialize(
+                    _savedResults.ToList(),
+                    new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(file, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to save results.\n\n{ex.Message}",
+                    "Saved Results",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+        private void LoadFromLocal()
+        {
+            try
+            {
+                var folder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "SelectionAggregate");
+
+                var file = Path.Combine(folder, "saved_results.json");
+
+                if (!File.Exists(file))
+                    return;
+
+                var json = File.ReadAllText(file);
+
+                var items = JsonSerializer.Deserialize<List<SavedResult>>(json);
+
+                _savedResults.Clear();
+
+                if (items == null)
+                    return;
+
+                foreach (var item in items)
+                {
+                    _savedResults.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to load saved results.\n\n{ex.Message}",
+                    "Saved Results",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private string RecalculateSavedResult(SavedResult result)
+        {
+
+
+            var elements = GetElementsFromSavedResult(result);
+            string value = _calculationService.Calculate(
+                elements,
+                _doc.GetUnits(),
+                result.AggregateParameter,
+                result.AggregateOperation
+            );
+
+            return value;
+        }
+
+        private List<Element> GetElementsFromSavedResult(SavedResult result)
+        {
+            var elements = result.ElementIds.Select(x => new ElementId(x)).Where(id => _doc.GetElement(id) != null).Select(id => _doc.GetElement(id)).ToList();
+            return elements;
         }
     }
 }

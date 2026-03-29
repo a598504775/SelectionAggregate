@@ -5,36 +5,99 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SelectionAggregate"
         mc:Ignorable="d"
-        Title="FilterWindow" Height="400" Width="240">
-    <Grid Margin="16">
-        <StackPanel>
-            <TextBlock Text="Filter"
-                       FontSize="20"
-                       FontWeight="Bold"
-                       Margin="0,0,0,16"/>
-            <TextBlock Text="Parameter"/>
-            <ComboBox x:Name="FilterParameterComboBox" 
-                      Margin="0,4,0,12" 
-                      Height="28"/>
-            <TextBlock Text="Condition"/>
-            <ComboBox x:Name="FilterConditionComboBox" 
-                      Margin="0,4,0,12" 
-                      Height="28" 
-                      SelectionChanged="FilterConditionComboBox_SelectionChanged"/>
-            <TextBlock Text="Value"/>
-            <TextBox x:Name="FilterValueTextBox" Margin="0,4,0,12" Height="28"/>
-            <Button x:Name="ApplyFilterButton"
-                    Content="Apply Filter"
-                    Height="32"
-                    Width="100"
-                    Margin="0,8,0,12" 
-                    Click="ApplyButton_Click"/>
-            <Button 
-                    Content="Cancel"
-                    Height="32"
-                    Width="100"
-                    Margin="0,8,0,12"                
-                Click="CancelButton_Click"/>
+        Title="Filter" 
+        Height="250" 
+        Width="240"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <Style TargetType="Border" x:Key="CardBorderStyle">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E3E6EA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="SectionTitleStyle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#222222"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Background" Value="#F4F4F4"/>
+            <Setter Property="BorderBrush" Value="#CFCFCF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </Window.Resources>
+    <Grid Background="#F5F6F8">
+        <StackPanel Margin="16,16,16,16">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="42"/>
+                            <RowDefinition Height="42"/>
+                            <RowDefinition Height="42"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Parameter" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="FilterParameterComboBox" 
+                                     Margin="0,0,0,0" 
+                                        Height="28" Grid.Row="0" Grid.Column="1"/>
+                        <TextBlock Text="Condition" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="FilterConditionComboBox" 
+                                 Margin="0,0,0,0" 
+                                  Height="28" 
+                                   SelectionChanged="FilterConditionComboBox_SelectionChanged" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="Value" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="FilterValueTextBox" Height="28" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="42"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="ApplyFilterButton"
+                                Content="Apply"
+                                Height="28"
+                                Width="64" 
+                                Grid.Column="2" 
+                                Grid.Row="0"
+                                Click="ApplyButton_Click" HorizontalAlignment="Right"/>
+                        <Button Content="Cancel"
+                                Height="28"
+                                Grid.Column="0"
+                                Grid.Row="0"
+                                Width="64"                
+                                Click="CancelButton_Click" HorizontalAlignment="Left"/>
+                    </Grid>
+
+
+
+                </StackPanel>
+
+            </Border>
+
         </StackPanel>
     </Grid>
 </Window>

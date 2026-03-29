@@ -71,7 +71,7 @@ Revit 2026 API changes: https://www.revitapidocs.com/2026/news
 - History panel: Saved results persistant. Simple jSON version.
 
 ###Before publish：
-- Refine filter window UI.
+- (Completed) Refine filter window UI.
 - Provide formal Icon on Revit Add-Ins panel.
 - Filter UI will appear on to of the main UI
 - Using own input WPF box instead of buildin input box.

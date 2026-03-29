@@ -1,13 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <RevitAddIns>
-  <AddIn Type="Command">
+  <AddIn Type="Application">
     <Name>SelectionAggregate</Name>
-    <Assembly>"C:\ProgramData\Autodesk\Revit\Addins\2026\SelectionAggregate.dll"</Assembly>
+    <Assembly>C:\ProgramData\Autodesk\Revit\Addins\2026\SelectionAggregate.dll</Assembly>
     <AddInId>8D83C886-B739-4ACD-A9DB-1BC78F315B2A</AddInId>
-    <FullClassName>SelectionAggregate.SelectionAggregateCommand</FullClassName>
-    <Text>Selection Aggregate</Text>
-    <Description>Aggregate values from selected Revit elements.</Description>
-    <VendorId>JSWU</VendorId>
-    <VendorDescription>Jinfeng Wu</VendorDescription>
+    <FullClassName>SelectionAggregate.App</FullClassName>
+    <VendorId>JFWU</VendorId>
+    <VendorDescription>SelectionAggregate Revit Plugin</VendorDescription>
   </AddIn>
 </RevitAddIns>

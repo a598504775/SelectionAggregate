@@ -41,6 +41,11 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  
+  <ItemGroup>
+    <Resource Include="Resources\icon16.png" />
+    <Resource Include="Resources\icon32.png" />
+  </ItemGroup>
 
   <Target Name="ValidateAddinFile" BeforeTargets="Build">
     <Error Condition="!Exists('$(ProjectDir)$(AddinFileName)')" Text="Missing addin file: $(ProjectDir)$(AddinFileName)" />
