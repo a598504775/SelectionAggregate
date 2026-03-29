@@ -10,11 +10,9 @@
 
     <AssemblyName>SelectionAggregate</AssemblyName>
     <RootNamespace>SelectionAggregate</RootNamespace>
-
-    <RevitAddinsDir>C:\ProgramData\Autodesk\Revit\Addins\2026\</RevitAddinsDir>
-    <AddinFileName>SelectionAggregate.addin</AddinFileName>
   </PropertyGroup>
 
+  <!-- Revit API references -->
   <ItemGroup>
     <Reference Include="RevitAPI">
       <HintPath>H:\Revit2026\Software\Revit 2026\RevitAPI.dll</HintPath>
@@ -27,6 +25,7 @@
     </Reference>
   </ItemGroup>
 
+  <!-- WPF Settings -->
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -41,22 +40,33 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  
+
+  <!-- Embedded resources (icons) -->
   <ItemGroup>
     <Resource Include="Resources\icon16.png" />
     <Resource Include="Resources\icon32.png" />
   </ItemGroup>
 
-  <Target Name="ValidateAddinFile" BeforeTargets="Build">
-    <Error Condition="!Exists('$(ProjectDir)$(AddinFileName)')" Text="Missing addin file: $(ProjectDir)$(AddinFileName)" />
-  </Target>
+  <!-- Debug ONLY: auto copy to Revit Addins folder -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <RevitAddinsDir>C:\ProgramData\Autodesk\Revit\Addins\2026\</RevitAddinsDir>
+    <AddinFileName>SelectionAggregate.addin</AddinFileName>
+  </PropertyGroup>
 
-  <Target Name="CopyRevitAddinFiles" AfterTargets="Build">
+  <Target Name="CopyRevitAddinFiles"
+          AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug'">
+
     <MakeDir Directories="$(RevitAddinsDir)" />
 
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFiles="$(RevitAddinsDir)$(AssemblyName).dll" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll"
+          DestinationFiles="$(RevitAddinsDir)$(AssemblyName).dll"
+          SkipUnchangedFiles="true" />
 
-    <Copy SourceFiles="$(ProjectDir)$(AddinFileName)" DestinationFiles="$(RevitAddinsDir)$(AddinFileName)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ProjectDir)$(AddinFileName)"
+          DestinationFiles="$(RevitAddinsDir)$(AddinFileName)"
+          SkipUnchangedFiles="true" />
+
   </Target>
 
 </Project>

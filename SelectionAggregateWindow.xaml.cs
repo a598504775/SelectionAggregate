@@ -11,10 +11,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using System.IO;
-using System.Text.Json;
-using System.Windows.Controls.Primitives;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace SelectionAggregate
 {
@@ -216,7 +213,7 @@ namespace SelectionAggregate
                 Title = GenerateNextSavedResultTitle(),
                 SelectionSummaryText = _selectionService.GetSelectionSummary(_selectedElements).Description,
                 ElementIds = _selectedElements.Select(x => x.Id.Value).ToList(),
-                AggregateParameter = (ParameterComboBox.SelectedItem as ParameterOption)?.DisplayName ?? string.Empty,
+                AggregateParameter = (ParameterComboBox.SelectedItem as ParameterOption)?.InternalName ?? string.Empty,
                 AggregateOperation = (OperationComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty,
                 AggregateValueText = ResultTextBlock.Text ?? string.Empty,
             };
@@ -376,7 +373,6 @@ namespace SelectionAggregate
 
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-            //TODO: Greyout Undo button if the stack is empty
             var snapshot = _undoManager.Pop();
             if (snapshot == null)
                 return;
@@ -432,8 +428,14 @@ namespace SelectionAggregate
 
                 var file = Path.Combine(folder, "saved_results.json");
 
+                var store = new SavedResultStore
+                {
+                    Version = 1,
+                    Items = _savedResults.ToList()
+                };
+
                 var json = JsonSerializer.Serialize(
-                    _savedResults.ToList(),
+                    store,
                     new JsonSerializerOptions { WriteIndented = true });
 
                 File.WriteAllText(file, json);
@@ -449,38 +451,49 @@ namespace SelectionAggregate
         }
         private void LoadFromLocal()
         {
+            var folder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "SelectionAggregate");
+
+            var file = Path.Combine(folder, "saved_results.json");
+
+            if (!File.Exists(file))
+                return;
+
             try
             {
-                var folder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "SelectionAggregate");
-
-                var file = Path.Combine(folder, "saved_results.json");
-
-                if (!File.Exists(file))
-                    return;
-
                 var json = File.ReadAllText(file);
 
-                var items = JsonSerializer.Deserialize<List<SavedResult>>(json);
+                var store = JsonSerializer.Deserialize<SavedResultStore>(json);
+
+                if (store == null || store.Version != 1 || store.Items == null)
+                    throw new InvalidOperationException("Unsupported saved result file format.");
 
                 _savedResults.Clear();
 
-                if (items == null)
-                    return;
-
-                foreach (var item in items)
+                foreach (var item in store.Items)
                 {
                     _savedResults.Add(item);
                 }
             }
-            catch (Exception ex)
+            catch
             {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // ignore delete failure
+                }
+
+                _savedResults.Clear();
+
                 MessageBox.Show(
-                    $"Failed to load saved results.\n\n{ex.Message}",
+                    "The saved results file is from an unsupported format and has been reset.",
                     "Saved Results",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    MessageBoxImage.Information);
             }
         }
 
@@ -489,6 +502,8 @@ namespace SelectionAggregate
 
 
             var elements = GetElementsFromSavedResult(result);
+            if (elements == null || elements.Count == 0)
+                return "(no valid elements)";
             string value = _calculationService.Calculate(
                 elements,
                 _doc.GetUnits(),
