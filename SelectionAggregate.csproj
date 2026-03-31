@@ -53,19 +53,13 @@
     <AddinFileName>SelectionAggregate.addin</AddinFileName>
   </PropertyGroup>
 
-  <Target Name="CopyRevitAddinFiles"
-          AfterTargets="Build"
-          Condition="'$(Configuration)' == 'Debug'">
+  <Target Name="CopyRevitAddinFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
 
     <MakeDir Directories="$(RevitAddinsDir)" />
 
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll"
-          DestinationFiles="$(RevitAddinsDir)$(AssemblyName).dll"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFiles="$(RevitAddinsDir)$(AssemblyName).dll" SkipUnchangedFiles="true" />
 
-    <Copy SourceFiles="$(ProjectDir)$(AddinFileName)"
-          DestinationFiles="$(RevitAddinsDir)$(AddinFileName)"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ProjectDir)$(AddinFileName)" DestinationFiles="$(RevitAddinsDir)$(AddinFileName)" SkipUnchangedFiles="true" />
 
   </Target>
 

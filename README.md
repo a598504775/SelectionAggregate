@@ -69,8 +69,16 @@ use **Update Element Selection** to sync the record
 ---
 
 ## Screenshot
+![Screenshot](Images/screenshot.png)
 
-*(Add a screenshot or GIF here later)*
+### Main Workflow
+![Main](Images/selection_aggregate.gif)
+
+### Filter + Undo
+![Filter](Images/filter_undo.gif)
+
+### Saved Results
+![Saved Results](Images/saved_results.gif)
 
 ---
 
