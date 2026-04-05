@@ -10,43 +10,16 @@
         Title="Selection Aggregate">
 
     <Window.Resources>
-        <Style TargetType="Border" x:Key="CardBorderStyle">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E3E6EA"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="14"/>
-            <Setter Property="Margin" Value="0,0,0,0"/>
-        </Style>
-
-        <Style TargetType="TextBlock" x:Key="SectionTitleStyle">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#222222"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-
-        <Style TargetType="Button">
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="MinWidth" Value="96"/>
-            <Setter Property="Padding" Value="12,4"/>
-            <Setter Property="Background" Value="#F4F4F4"/>
-            <Setter Property="BorderBrush" Value="#CFCFCF"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/CommonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Grid Background="#F5F6F8">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="16,16,16,20">
-
-
-
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock Text="AGGREGATE"
@@ -55,8 +28,8 @@
                         <Grid Height="44">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="64" />
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="36" />
+                                <ColumnDefinition Width="36" />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock x:Name="SelectionTextBlock"
@@ -66,18 +39,28 @@
                                        VerticalAlignment="Center"
                                        TextWrapping="Wrap"
                                        Margin="0,0,12,0"/>
+
                             <Button x:Name="UndoButton"
                                     Grid.Column="1"
-                                    Content="Undo"
-                                    MinWidth="0"
-                                    Width="56"
-                                    Click="UndoButton_Click" HorizontalAlignment="Right"/>
+                                    Style="{StaticResource IconButtonStyle}"
+                                    ToolTip="Undo"
+                                    Click="UndoButton_Click"
+                                    HorizontalAlignment="Right">
+                                <Image Source="Resources\undo.png"
+                                       Width="18"
+                                       Height="18"/>
+                            </Button>
+
                             <Button x:Name="FilterButton"
                                     Grid.Column="2"
-                                    Content="Filter"
-                                    MinWidth="0"
-                                    Width="56"
-                                    Click="FilterButton_Click" HorizontalAlignment="Right"/>
+                                    Style="{StaticResource IconButtonStyle}"
+                                    ToolTip="Filter"
+                                    Click="FilterButton_Click"
+                                    HorizontalAlignment="Right">
+                                <Image Source="Resources\filter.png"
+                                       Width="18"
+                                       Height="18"/>
+                            </Button>
                         </Grid>
                         <Grid Margin="0,0,0,0">
                             <Grid.RowDefinitions>
@@ -97,7 +80,8 @@
                             <ComboBox x:Name="ParameterComboBox"
                                       Grid.Row="0"
                                       SelectionChanged="SelectionChanged"
-                                      Grid.Column="1" Margin="0,6,0,6" Background="White"/>
+                                      Grid.Column="1"
+                                      Style="{StaticResource CleanComboBoxStyle}"/>
 
                             <TextBlock Text="Operation"
                                        Grid.Row="1"
@@ -109,7 +93,8 @@
                             <ComboBox x:Name="OperationComboBox"
                                       Grid.Row="1"
                                       SelectionChanged="SelectionChanged"
-                                      Grid.Column="1" Margin="0,6,0,6" Background="White">
+                                      Grid.Column="1"
+                                      Style="{StaticResource CleanComboBoxStyle}">
                                 <ComboBoxItem Content="Sum"/>
                                 <ComboBoxItem Content="Average"/>
                                 <ComboBoxItem Content="Min"/>
@@ -140,17 +125,17 @@
                                            TextWrapping="Wrap" 
                                            VerticalAlignment="Center"/>
                             </Border>
+
                             <Button x:Name="CalculateButton"
                                     Grid.Column="1"
                                     Content="Calculate"
-                                    Height="32"
+                                    Style="{StaticResource PrimaryButtonStyle}"
                                     Width="96"
+                                    Height="32"
                                     HorizontalAlignment="Right"
                                     Click="CalculateButton_Click"
-                                    FontWeight="Bold"
-                                    Background="#2D2D30"
-                                    Foreground="White"
-                                    BorderBrush="#2D2D30" FontSize="14" VerticalAlignment="Center"/>
+                                    FontSize="13"
+                                    VerticalAlignment="Center"/>
                         </Grid>
 
                     </StackPanel>
@@ -173,14 +158,18 @@
                                 </StackPanel>
 
                             <Button x:Name="SaveResultButton"
-                                Content="Save Result"
-                                HorizontalAlignment="Right"
-                                Grid.Column="1"
-                                Click="SaveResultButton_Click"
-                                IsEnabled="False"/>
+                                    Grid.Column="1"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Click="SaveResultButton_Click"
+                                    HorizontalAlignment="Right"
+                                    ToolTip="Save current result">
+                                <Image Source="Resources\save.png"
+                                       Width="18"
+                                       Height="18"/>
+                            </Button>
                         </Grid>
 
-                        <Border Style="{StaticResource CardBorderStyle}">
+                        <Border Style="{StaticResource HistoryBorderStyle}">
                             <StackPanel>
                                 <ListBox x:Name="SavedResultsListBox"
                                          Height="110"
@@ -191,9 +180,9 @@
 
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Padding="8" 
+                                            <Border Padding="4" 
                                                     Margin="0,0,0,0" 
-                                                    CornerRadius="6" 
+                                                    CornerRadius="4" 
                                                     PreviewMouseRightButtonDown="SavedResultBorder_PreviewMouseRightButtonDown"
                                                     Background="#F8F9FB">
                                                 <Border.ContextMenu>
@@ -211,15 +200,17 @@
                                                 </Border.ContextMenu>
                                                 <StackPanel>
                                                     <TextBlock FontWeight="SemiBold"
+                                                               FontSize="11"
+                                                               Margin="0,0,0,0"
                                                                Foreground="#222222">            
                                                         <Run Text="{Binding Title}" />
                                                         <Run Text="  -  " />
                                                         <Run Text="{Binding SelectionSummaryText}" />
                                                     </TextBlock>
 
-                                                    <TextBlock FontSize="13"
+                                                    <TextBlock FontSize="11"
                                                                Foreground="#444444"
-                                                               Margin="0,3,0,0">
+                                                               Margin="0,0,0,0">
                                                         <Run Text="{Binding AggregateOperation}" />
                                                         <Run Text="{Binding AggregateParameter}" />
                                                         <Run Text=": " />

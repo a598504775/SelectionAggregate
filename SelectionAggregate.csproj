@@ -45,6 +45,9 @@
   <ItemGroup>
     <Resource Include="Resources\icon16.png" />
     <Resource Include="Resources\icon32.png" />
+    <Resource Include="Resources\filter.png" />
+    <Resource Include="Resources\undo.png" />
+    <Resource Include="Resources\save.png" />
   </ItemGroup>
 
   <!-- Debug ONLY: auto copy to Revit Addins folder -->
